@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hydra — Adversarial Evasion Lab</title>
+<style>
+  :root{
+    --bg:#0b0f14; --panel:#121924; --panel2:#0e141d; --ink:#e6edf3; --soft:#9fb0c3;
+    --faint:#5f7186; --rule:#1e2836; --red:#ff5f6d; --teal:#00d1c7; --green:#3fb950;
+    --amber:#e3b341; --accent:#7c8cff;
+    --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono",Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 600px at 70% -10%,#132033 0%,var(--bg) 55%);
+    color:var(--ink);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:920px;margin:0 auto;padding:0 22px 90px}
+  header{padding:80px 0 34px;border-bottom:1px solid var(--rule)}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--teal);margin:0 0 14px}
+  h1{font-size:clamp(40px,8vw,72px);margin:0;letter-spacing:-.03em;font-weight:800;line-height:.98}
+  .tag{font-family:var(--mono);color:var(--faint);font-size:14px;margin:14px 0 0}
+  .lede{font-size:19px;color:var(--soft);max-width:64ch;margin:22px 0 0}
+  .lede b{color:var(--ink)}
+  .btns{display:flex;gap:12px;flex-wrap:wrap;margin-top:26px}
+  a.btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;
+    text-decoration:none;padding:10px 16px;border-radius:8px;border:1px solid var(--rule);
+    color:var(--ink);background:var(--panel);transition:.15s}
+  a.btn:hover{border-color:var(--accent);transform:translateY(-1px)}
+  a.btn.primary{background:var(--accent);border-color:var(--accent);color:#0b0f14;font-weight:700}
+  section{padding-top:54px}
+  h2{font-size:14px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;
+    color:var(--faint);margin:0 0 20px;font-weight:600}
+  .verdict{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:620px){.verdict{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--rule);border-radius:14px;padding:24px}
+  .card.win{border-left:3px solid var(--red)}
+  .card.hold{border-left:3px solid var(--green)}
+  .card h3{margin:0;font-size:15px;font-family:var(--mono);color:var(--soft);font-weight:500}
+  .big{font-size:44px;font-weight:800;letter-spacing:-.02em;margin:10px 0 4px;font-variant-numeric:tabular-nums}
+  .win .big{color:var(--red)} .hold .big{color:var(--green)}
+  .card p{margin:8px 0 0;color:var(--faint);font-size:14px}
+  .safety{background:linear-gradient(180deg,#111a26,#0e141d);border:1px solid var(--rule);
+    border-left:3px solid var(--amber);border-radius:14px;padding:22px 24px}
+  .safety h2{color:var(--amber);margin-bottom:12px}
+  .safety ul{margin:0;padding-left:18px;color:var(--soft);font-size:14.5px}
+  .safety li{margin:6px 0}
+  table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13px;
+    background:var(--panel);border:1px solid var(--rule);border-radius:12px;overflow:hidden}
+  th,td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--rule)}
+  th{color:var(--faint);text-transform:uppercase;font-size:10.5px;letter-spacing:.08em;font-weight:600;
+    background:var(--panel2)}
+  tr:last-child td{border-bottom:none}
+  .pill{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600}
+  .match{background:rgba(255,95,109,.16);color:var(--red)}
+  .clean{background:rgba(63,185,80,.16);color:var(--green)}
+  .fired{background:rgba(255,95,109,.16);color:var(--red)}
+  .silent{background:rgba(227,179,65,.16);color:var(--amber)}
+  .scroll{overflow-x:auto;margin-top:6px}
+  .flow{color:var(--soft);font-family:var(--mono);font-size:13px;line-height:1.9;
+    background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:22px 24px;overflow-x:auto}
+  .flow b{color:var(--teal)} .flow .r{color:var(--red)} .flow .g{color:var(--green)}
+  footer{margin-top:64px;padding-top:22px;border-top:1px solid var(--rule);
+    font-family:var(--mono);font-size:12px;color:var(--faint)}
+  a{color:var(--accent)}
+  .note{font-family:var(--mono);font-size:11.5px;color:var(--faint);margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Adversarial Detector-Robustness Research</p>
+    <h1>Hydra</h1>
+    <p class="tag">// kill one signature, it grows a new head</p>
+    <p class="lede">A local, security-tuned LLM rewrites a benign, ransomware-shaped
+      program in a closed loop, reacting to detector feedback each round. Hydra
+      measures which detection survives an adaptive AI adversary — signature or
+      behavior. <b>The signature rule is evaded in one iteration; the behavioral
+      rule is never evaded while the sample still behaves like ransomware.</b></p>
+    <div class="btns">
+      <a class="btn primary" href="https://github.com/Asrar-ali/Hydra">View on GitHub →</a>
+      <a class="btn" href="https://github.com/Asrar-ali/Hydra/blob/main/ARCHITECTURE.md">Architecture</a>
+    </div>
+  </header>
+
+  <section>
+    <h2>The result</h2>
+    <div class="verdict">
+      <div class="card win">
+        <h3>Signature detection · YARA</h3>
+        <div class="big">1 iteration</div>
+        <p>Evaded almost immediately. Changing bytes is easy — the adversary
+          rewrites the sample and the signature no longer matches.</p>
+      </div>
+      <div class="card hold">
+        <h3>Behavioral detection · Falco</h3>
+        <div class="big">0 evasions</div>
+        <p>Never evaded while behavior was preserved. The only way to silence it
+          was to stop rewriting files — i.e. to stop being ransomware.</p>
+      </div>
+    </div>
+    <p class="note">Data from a representative <code>make run</code> execution
+      (results.json). Signature evaded after 1 iteration · 0 behavioral evasions
+      with behavior preserved · breaking behavior was required to evade Falco.</p>
+  </section>
+
+  <section>
+    <div class="safety">
+      <h2>⚠ Safety &amp; ethics</h2>
+      <ul>
+        <li>Authorized, <b>defensive</b> research against Hydra's <b>own</b> lab
+          detectors — never third-party defenses.</li>
+        <li>The sample is <b>benign by construction</b>: rewrites only throwaway
+          files it creates, no network, no persistence, reverses itself on exit.</li>
+        <li>Mutated code runs <b>only in a throwaway, network-isolated container</b>.</li>
+        <li>Real malware is never executed. Everything runs offline; nothing leaves the machine.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>How the loop works</h2>
+    <div class="flow">
+      seed sample <b>(benign, ransomware-shaped)</b><br>
+      &nbsp;&nbsp;↓<br>
+      <b>referee</b> → arena <b>(throwaway container: compile + run, no network)</b><br>
+      &nbsp;&nbsp;├─→ <b>YARA</b> signature &nbsp;→ MATCH / CLEAN<br>
+      &nbsp;&nbsp;└─→ <b>Falco</b> behavioral (eBPF) → FIRED / SILENT<br>
+      &nbsp;&nbsp;↓ &nbsp;verdict + reason: <span class="g">evade this, keep behavior</span><br>
+      <b>adversary</b> (local LLM via Ollama) → rewritten source<br>
+      &nbsp;&nbsp;↺ &nbsp;recompile · re-run · re-judge
+    </div>
+    <p class="note">The adversary sees each detector's verdict <em>and reason</em>
+      and must reason about <em>why</em> it was caught — the adaptation step a
+      template mutator cannot do.</p>
+  </section>
+
+  <section>
+    <h2>Run trace</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Iter</th><th>Target</th><th>YARA</th><th>Falco</th><th>Behavior preserved</th></tr></thead>
+        <tbody>
+          <tr><td>0 · seed</td><td>—</td><td><span class="pill match">MATCH</span></td><td><span class="pill fired">FIRED</span></td><td>yes</td></tr>
+          <tr><td>1</td><td>YARA</td><td><span class="pill clean">CLEAN</span></td><td><span class="pill fired">FIRED</span></td><td>yes</td></tr>
+          <tr><td>2–8</td><td>Falco</td><td><span class="pill clean">CLEAN</span></td><td><span class="pill fired">FIRED ×7</span></td><td>yes</td></tr>
+          <tr><td>9 · finale</td><td>Falco</td><td><span class="pill clean">CLEAN</span></td><td><span class="pill silent">SILENT</span></td><td><b>no — behavior broken</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">YARA falls at iteration 1 and stays clean. Falco fires through
+      every rewrite until iteration 9, where it goes silent only because the
+      sample stopped performing the malicious behavior.</p>
+  </section>
+
+  <section>
+    <h2>Why it matters</h2>
+    <p class="lede" style="font-size:17px">Field malware now uses LLMs to rewrite
+      itself and reason about why it was detected (Google's PromptFlux/PromptLock,
+      2025). Hydra shows the consequence in a controlled lab: against an adaptive
+      AI adversary, <b>signatures are brittle and behavior is robust — because
+      evading behavior requires abandoning the behavior.</b></p>
+  </section>
+
+  <footer>
+    <p>Hydra — adversarial detector-robustness research · Python · YARA · Falco/eBPF · Ollama · Docker</p>
+    <p>Built by <a href="https://github.com/Asrar-ali">Mohammed Asrar Ali</a> ·
+      <a href="https://github.com/Asrar-ali/Hydra">source</a> · MIT licensed</p>
+  </footer>
+
+</div>
+</body>
+</html>
